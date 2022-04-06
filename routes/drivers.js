@@ -1,116 +1,93 @@
-const Joi = require('joi')
 const express = require('express');
 const { Router } = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const { Driver, validate } = require('../models/drivers');
 
-let drivers = [
-    {
-        "id" :  1,
-        "name" : "Lewis Hamilton",
-        "number" : 44
-    },
-    {
-        "id" :  2,
-        "name" : "Max Verstappen",
-        "number" : 1
-    },
-    {
-        "id" :  3,
-        "name" : "Charles Leclrec",
-        "number" : 17
-    }
-];
 
-router.post('/', (req, res) => {
-    const newDriverID = drivers.length;
+router.post('/', async (req, res) => {
+    
+    let result = validate(req.body)
 
-    const driver = {id: newDriverID, ...req.body };
-
-    const result = validateDriver(req.body)
-
-    if (result.error)
-    {
+    if (result.error) {
         res.status(400).json(result.error);
         return;
     }
 
-    drivers.push(driver);
-    
-    res.location(`/drivers/${newDriverID}`)
-    .status(201)
-    .json(driver);
+    let driver = new Driver(req.body);
 
-    console.log(`Driver name is ${driver.name} number of the driver is ${drivers.length}`);
+    try {
+        driver = await driver.save();
+        res.location(`/${driver._id}`)
+        .status(201)
+        .json(driver);
+    }
+    catch {
+        res.status(500).json(result.error);
+    }
 });
 
-router.get('/', (req,res)=> {
-    res.send(drivers);
-})
-
-router.get('/:id', (req,res) => {
-    
-   const id = req.params.id;
-
-   const driver =  drivers.find(d =>  d.id === parseInt(req.params.id))
-
-   if (!driver) {
-       res.status(404);
-       res.json({ error: 'not found'});
-       return
-   }
-
-    res.json(drivers[id])
-})
-
-router.delete('/:id', (req,res) => {
-    const id = req.params.id;
-
-    const driver = drivers.find(d => d.id === parseInt(req.params.id))
-
-    if (!driver) {
-        res.status(404).json(`driver with that ID {id} was not found `);
-        return;
+router.get('/', async (req,res)=> {
+    try {
+        const driver = await Driver.find();
+        res.json(drivers);
     }
-
-    const index = drivers.indexOf(driver);
-
-    drivers.splice(index, 1);
-    res.send(driver);
+    catch {
+        res.status(500).json('db error')
+    }
 })
 
-router.put('/drivers/:id',(req, res) => {
+router.get('/:id', async (req,res) => {
+    
+   try {
 
-    const id = req.params.id;
+    const driver = await Driver.findById(req.params.id);
+    if(driver) {
+        res.json(driver);
+    }
+    else {
+        res.status(404).json('Not found')
+    }
+   }
+   catch {
+       res.status(404).json('Not found: id is weird');
+   }
+})
 
-    const result =  validateDriver(req.body)
+router.delete('/:id', async (req,res) => {
+    
+    try {
+        const driver = await Driver.findByIdAndDelete(req.params.id)
+        res.send(driver) 
+    }
+    catch {
+        res.status(404).json(`driver with that ID ${req.params.id} was not found`);
+    }
+})
 
-    if (result.error)
-    {
+router.put('/:id', async (req, res) => {
+
+    const result = validate(req.body)
+
+    if (result.error) {
         res.status(400).json(result.error);
         return;
     }
 
-    const driver = drivers.find(d => d.id === parseInt(req,params.id))
+    try {
 
-    if (!driver) {
-        res.status(404).json(`Driver with that ID {req.params.id} was not found`);
-        return;
+        const driver = await Driver.findByIdAndUpdate(req.params.id, req.body, {new: true});
+        if (driver) {
+            res.json(driver);
+        }
+        else {
+            res.status(404).json('Not found');
+        }
     }
-
-    console.log(`changing driver ${driver.name}`);
-    driver.name = req.body.name;
-    driver.number = req.body.number;
-
-    res.send(book);
+    catch {
+        res.status(404).json('Not found: id is weird');
+    }
 }) 
 
-function validateDriver(driver) {
-    const schema = Joi.object({
-        name: Joi.string().min(3).required(),
-        number: Joi.number().integer().min(0)
-    })
-    return schema.validate(driver);
-}
 
 module.exports = router
