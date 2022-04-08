@@ -39,6 +39,8 @@ router.get('/', async (req,res)=> {
       catch {
         res.status(500).json('db error')
       }
+
+      
 })
 
 router.get('/:id' ,async (req,res) => {
