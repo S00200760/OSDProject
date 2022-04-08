@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 
 const  crypto = require( 'crypto');
 
+const credentials = require('../config')
+
 
 let secret =  'unasverySecretSecret' // would normally import this from a config file
 

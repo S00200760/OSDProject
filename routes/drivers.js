@@ -3,6 +3,8 @@ const { Router } = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
+
+const validJWTNeeded =  require('../middleware/jwtvalidation');
 const { validationMiddleware } = require('../middleware/jwtvalidation');
 const { Driver, validate } = require('../models/drivers');
 
@@ -43,7 +45,7 @@ router.get('/', async (req,res)=> {
       
 })
 
-router.get('/:id' ,async (req,res) => {
+router.get('/:id', validationMiddleware,validJWTNeeded, async (req,res) => {
     
    try {
 

@@ -2,8 +2,11 @@ const Joi = require('joi')
 const express = require('express');
 const res = require('express/lib/response');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 const drivers = require('./routes/drivers');
+const users = require('./routes/users');
+const auth = require('./routes/auth');
 
 const app = express()
 const port =  3000;
@@ -29,7 +32,14 @@ db.once('open', () => {
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+app.usew(cors());
+
+
 
 app.use('/drivers', drivers);
+app.use('/users', users);
+app.use('/auth', auth);
+
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
