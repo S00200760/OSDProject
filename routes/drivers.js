@@ -5,8 +5,6 @@ const mongoose = require('mongoose');
 const { Driver, validate } = require('../models/drivers');
 
 
-
-
 router.post('/', async (req, res) => {
     
     let result = validate(req.body)
@@ -30,13 +28,15 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', async (req,res)=> {
+
     try {
+
         const driver = await Driver.find();
-        res.json(drivers);
-    }
-    catch {
+        res.json(driver);
+      }
+      catch {
         res.status(500).json('db error')
-    }
+      }
 })
 
 router.get('/:id', async (req,res) => {
